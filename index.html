@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Last Bite — a survival duel for two</title>
+  <meta name="description" content="A dark 1v1 survival duel: he bites, she slaps. Lights out, traps, hiding spots, invisibility — last one standing wins.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦷</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+
+  <button class="lang-btn lang-float" id="btn-lang-menu" data-i18n-title="hud.lang">TR·EN</button>
+
+  <!-- MAIN MENU -->
+  <section class="screen" id="scr-menu">
+    <div class="panel menu-panel">
+      <p class="kicker" data-i18n="menu.kicker">Night 1 · power grid down</p>
+      <h1 class="logo" data-i18n-html="menu.logo"><span>Last</span> <span class="bite">Bite</span></h1>
+      <p class="tagline" data-i18n="menu.tagline">Two survivors. One dark night. Only one walks out.</p>
+      <label class="name-field"><span data-i18n="menu.name">Callsign</span><input id="in-name" maxlength="14" data-i18n-ph="menu.namePh" placeholder="e.g. Alex" autocomplete="off"></label>
+      <div class="btn-col">
+        <button class="btn primary" id="btn-host" data-i18n="menu.host">Create a room</button>
+        <button class="btn" id="btn-join" data-i18n="menu.join">Join with a code</button>
+        <button class="btn ghost" id="btn-local" data-i18n="menu.local">Same keyboard · split screen</button>
+        <button class="btn link" id="btn-help" data-i18n="menu.help">Survival manual</button>
+      </div>
+      <p class="rivalry" id="menu-rivalry"></p>
+    </div>
+  </section>
+
+  <!-- JOIN -->
+  <section class="screen" id="scr-join">
+    <div class="panel">
+      <h2 data-i18n="join.title">Find your rival</h2>
+      <p class="muted" data-i18n="join.sub">Enter the 5-letter room code they sent you.</p>
+      <input id="in-code" class="code-input" maxlength="5" placeholder="ABCDE" autocomplete="off" spellcheck="false">
+      <div class="row">
+        <button class="btn ghost" data-back data-i18n="back">Back</button>
+        <button class="btn primary" id="btn-join-go" data-i18n="join.go">Join</button>
+      </div>
+      <p class="status" id="join-status"></p>
+    </div>
+  </section>
+
+  <!-- LOBBY -->
+  <section class="screen" id="scr-lobby">
+    <div class="panel lobby-panel">
+      <div id="lobby-online">
+        <p class="kicker" data-i18n="lobby.code">Room code</p>
+        <div class="room-code" id="room-code">·····</div>
+        <div class="row center">
+          <button class="btn small" id="btn-copy-code" data-i18n="lobby.copyCode">Copy code</button>
+          <button class="btn small" id="btn-copy-link" data-i18n="lobby.copyLink">Copy invite link</button>
+        </div>
+        <p class="status" id="lobby-status" data-i18n="lobby.waiting">Waiting for your rival…</p>
+      </div>
+      <div id="lobby-local">
+        <h2 data-i18n="lobby.who">Pick your side</h2>
+        <p class="muted" data-i18n="lobby.whoSub">Click a survivor to make it Player 1's (left screen).</p>
+      </div>
+      <div class="char-row">
+        <button class="char-card boy" data-char="boy">
+          <canvas width="200" height="200"></canvas>
+          <span class="char-name" data-i18n="char.boy">Him</span>
+          <span class="char-role" data-i18n="char.boyRole">The Biter</span>
+          <ul class="moves" data-i18n-html="lobby.boyMoves"></ul>
+          <span class="char-owner"></span>
+        </button>
+        <button class="char-card girl" data-char="girl">
+          <canvas width="200" height="200"></canvas>
+          <span class="char-name" data-i18n="char.girl">Her</span>
+          <span class="char-role" data-i18n="char.girlRole">The Trickster</span>
+          <ul class="moves" data-i18n-html="lobby.girlMoves"></ul>
+          <span class="char-owner"></span>
+        </button>
+      </div>
+      <div class="row">
+        <button class="btn ghost" id="btn-lobby-leave" data-i18n="lobby.leave">Leave</button>
+        <button class="btn primary" id="btn-lobby-go" disabled>Choose arena →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARENA SELECT -->
+  <section class="screen" id="scr-arena">
+    <div class="arena-wrap">
+      <header class="arena-head">
+        <button class="btn ghost small" id="btn-arena-back" data-i18n="arena.lobby">← Lobby</button>
+        <div class="arena-title">
+          <p class="kicker" data-i18n="arena.kicker">Choose where you fight</p>
+          <h2 data-i18n="arena.title">Arenas</h2>
+        </div>
+        <div class="rounds" id="rounds">
+          <span data-i18n="arena.rounds">Rounds</span>
+          <button class="seg" data-best="3" data-i18n="arena.bo3">Best of 3</button>
+          <button class="seg" data-best="5" data-i18n="arena.bo5">Best of 5</button>
+        </div>
+      </header>
+      <div class="arena-grid" id="arena-grid"></div>
+      <p class="muted center" id="arena-note"></p>
+    </div>
+  </section>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <div class="hp-card boy" id="hp-boy">
+        <div class="hp-name"><span class="who" id="hpn-boy">Him</span><span class="status" id="hps-boy"></span></div>
+        <div class="hp-bar"><i class="ghost"></i><i class="fill"></i><b class="num">100</b></div>
+      </div>
+      <div class="hud-mid">
+        <div class="hud-round" id="hud-round">ROUND 1</div>
+        <div class="hud-score"><span class="sb" id="score-boy">0</span><span class="pips" id="hud-pips"></span><span class="sg" id="score-girl">0</span></div>
+        <div class="hud-timer" id="hud-timer">1:40</div>
+        <div class="hud-power" id="hud-power"></div>
+      </div>
+      <div class="hp-card girl" id="hp-girl">
+        <div class="hp-name"><span class="status" id="hps-girl"></span><span class="who" id="hpn-girl">Her</span></div>
+        <div class="hp-bar"><i class="ghost"></i><i class="fill"></i><b class="num">100</b></div>
+      </div>
+    </div>
+    <div class="hud-btns">
+      <span id="hud-ping" class="ping"></span>
+      <button class="icon-btn lang-btn small-lang" id="btn-lang-hud" data-i18n-title="hud.lang">TR·EN</button>
+      <button class="icon-btn" id="btn-music" data-i18n-title="hud.music" title="Music">♪</button>
+      <button class="icon-btn" id="btn-sfx" data-i18n-title="hud.sfx" title="Sound effects">🔊</button>
+      <button class="icon-btn" id="btn-pause" data-i18n-title="hud.menu" title="Menu (Esc)">❚❚</button>
+    </div>
+    <div class="skillbar left" id="skills-left"></div>
+    <div class="skillbar right" id="skills-right"></div>
+    <div class="hud-hint" id="hud-hint"></div>
+
+    <!-- CHAT -->
+    <div class="chat" id="chat">
+      <div class="chat-quick" id="chat-quick"></div>
+      <form class="chat-bar" id="chat-form" autocomplete="off">
+        <button type="button" class="chat-who" id="chat-who" data-i18n-title="chat.who"></button>
+        <input id="chat-in" maxlength="60" data-i18n-ph="chat.ph" placeholder="Say something… (Enter) — it gives you away" spellcheck="false">
+        <button type="submit" class="chat-send" data-i18n-title="chat.send">➤</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PAUSE -->
+  <div class="modal hidden" id="mdl-pause">
+    <div class="panel modal-panel">
+      <h2 data-i18n="pause.title">Hold your breath</h2>
+      <p class="muted" id="pause-note"></p>
+      <div class="btn-col">
+        <button class="btn primary" id="btn-resume" data-i18n="pause.resume">Resume</button>
+        <button class="btn" id="btn-restart" data-i18n="pause.restart">Restart match</button>
+        <button class="btn" id="btn-toarena" data-i18n="pause.arena">Change arena</button>
+        <button class="btn ghost" id="btn-pause-help" data-i18n="pause.controls">Survival manual</button>
+        <button class="btn ghost lang-btn" id="btn-lang-pause">TR·EN</button>
+        <button class="btn ghost danger" id="btn-leave" data-i18n="pause.quit">Quit to main menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATCH RESULT -->
+  <div class="modal hidden" id="mdl-result">
+    <div class="panel modal-panel result-panel">
+      <canvas id="result-avatar" width="220" height="220"></canvas>
+      <p class="kicker" id="result-kicker">Survivor</p>
+      <h2 id="result-title">She survived the night</h2>
+      <div class="result-score" id="result-score"></div>
+      <div class="result-stats" id="result-stats"></div>
+      <div class="btn-col">
+        <button class="btn primary" id="btn-rematch" data-i18n="result.rematch">Rematch</button>
+        <div class="row">
+          <button class="btn" id="btn-result-arena" data-i18n="result.arena">Other arena</button>
+          <button class="btn ghost" id="btn-result-lobby" data-i18n="result.lobby">Lobby</button>
+        </div>
+      </div>
+      <p class="muted small" id="result-note"></p>
+    </div>
+  </div>
+
+  <!-- HELP -->
+  <div class="modal hidden" id="mdl-help">
+    <div class="panel modal-panel help-panel">
+      <h2 data-i18n="help.title">Survival manual</h2>
+      <p class="muted" data-i18n="help.sub"></p>
+      <div class="help-grid">
+        <div class="help-col">
+          <h3 data-i18n="help.basics"></h3>
+          <ul class="keys" data-i18n-html="help.basicKeys"></ul>
+          <h3 data-i18n="help.boy"></h3>
+          <ul class="keys" data-i18n-html="help.boyKeys"></ul>
+          <h3 data-i18n="help.girl"></h3>
+          <ul class="keys" data-i18n-html="help.girlKeys"></ul>
+        </div>
+        <div class="help-col">
+          <h3 data-i18n="help.local"></h3>
+          <ul class="keys" data-i18n-html="help.localKeys"></ul>
+          <h3 data-i18n="help.food"></h3>
+          <ul class="keys" data-i18n-html="help.foodKeys"></ul>
+          <h3 data-i18n="help.tricks"></h3>
+          <ul class="tips" data-i18n-html="help.tips"></ul>
+        </div>
+      </div>
+      <button class="btn primary" data-close data-i18n="help.ok">Understood</button>
+    </div>
+  </div>
+
+  <div id="toasts"></div>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="js/maps.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/net.js"></script>
+  <script src="js/chars.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
