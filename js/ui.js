@@ -336,7 +336,7 @@
     if (online) { $('#skills-right').classList.add('hidden'); skillEls[rightCh] = null; }
     else { $('#skills-right').classList.remove('hidden'); mk($('#skills-right'), rightCh); }
   }
-  const STATUS_ICON = { bleed: '🩸', stun: '💫', blind: '😵', invis: '👻', fast: '🍵', conf: '💃', morph: '🥔', bride: '👰', hidden: '🚪' };
+  const STATUS_ICON = { bleed: '🩸', stun: '💫', blind: '😵', invis: '👻', fast: '🍵', conf: '💃', morph: '🥔', bride: '👰', hidden: '🚪', caged: '🔒', mat: '🧘', shock: '⚡' };
   let lastPips = '';
   function renderHud(h) {
     for (const ch of ['boy', 'girl']) {
@@ -347,7 +347,7 @@
       card.classList.toggle('low', pct < 30);
       // online: hide what the rival is doing unless it is visible anyway
       const st = p.status, show = App.mode === 'local' || p.local;
-      $('#hps-' + ch).textContent = Object.keys(STATUS_ICON).filter(k => st[k] && (show || ['bleed', 'stun', 'morph', 'bride', 'blind'].includes(k))).map(k => STATUS_ICON[k]).join(' ');
+      $('#hps-' + ch).textContent = Object.keys(STATUS_ICON).filter(k => st[k] && (show || ['bleed', 'stun', 'morph', 'bride', 'blind', 'caged', 'mat'].includes(k))).map(k => STATUS_ICON[k]).join(' ');
       const els = skillEls[ch];
       if (els) {
         p.slots.forEach((s, i) => {

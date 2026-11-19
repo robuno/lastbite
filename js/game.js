@@ -7,6 +7,7 @@
   const PW = C.PW, PH = C.PH;
   const DT = 1 / 120;
   const P = { G: 2100, JUMP: 760, MAXFALL: 980, RUN: 225, ACC_G: 2600, ACC_A: 1500, CLIMB: 150, COYOTE: 0.1, BUF: 0.13 };
+  const CAGE_W = 46, CAGE_H = 50, MAT_TIME = 10;
   const HP_MAX = 100, ROUND_TIME = 100, INTRO = 2.8, KO_TIME = 3.2;
   const VIEW_TILES = 12.5;
   const FOODS = ['iskender', 'sandwich', 'matcha', 'orange'];
@@ -27,18 +28,18 @@
   };
   const SKILL_CD = {
     boy: { s1: 24, s2: 8, s3: 16, magic: 26 },
-    girl: { s1: 18, s2: 14, s3: 20, magic: 26 },
+    girl: { s1: 18, s2: 14, s3: 20, magic: 26, x1: 22, x2: 26, x3: 30 },
   };
   // what the HUD shows, in order
   const SLOTS = {
     boy: [['a1', '🦷'], ['a2', '💨'], ['s1', '💡'], ['s2', '🪤'], ['s3', '👃'], ['magic', '👰']],
-    girl: [['a1', '✋'], ['a2', '🦷'], ['a3', '🩴'], ['s1', '👻'], ['s2', '✨'], ['s3', '🎭'], ['magic', '🥔']],
+    girl: [['a1', '✋'], ['a2', '🦷'], ['a3', '🩴'], ['s1', '👻'], ['s2', '✨'], ['s3', '🎭'], ['magic', '🥔'], ['x1', '⚡'], ['x2', '🔒'], ['x3', '🧘']],
   };
 
   const KEYMAPS = {
-    p1: { left: ['KeyA'], right: ['KeyD'], jump: ['KeyW', 'Space'], down: ['KeyS'], a1: ['KeyF'], a2: ['KeyG'], a3: ['KeyH'], s1: ['KeyQ'], s2: ['KeyE'], s3: ['KeyR'], magic: ['KeyT'], food: ['Digit1', 'Digit2', 'Digit3', 'Digit4'], dance: ['KeyZ'], kiss: ['KeyX'], say: ['KeyC'], taunt: ['KeyV'] },
-    p2: { left: ['ArrowLeft'], right: ['ArrowRight'], jump: ['ArrowUp'], down: ['ArrowDown'], a1: ['KeyK'], a2: ['KeyL'], a3: ['Semicolon'], s1: ['KeyI'], s2: ['KeyO'], s3: ['KeyP'], magic: ['KeyU'], food: ['Digit7', 'Digit8', 'Digit9', 'Digit0'], dance: ['KeyN'], kiss: ['KeyM'], say: ['KeyJ'], taunt: ['KeyB'] },
-    solo: { left: ['KeyA', 'ArrowLeft'], right: ['KeyD', 'ArrowRight'], jump: ['KeyW', 'ArrowUp', 'Space'], down: ['KeyS', 'ArrowDown'], a1: ['KeyJ'], a2: ['KeyK'], a3: ['KeyL'], s1: ['KeyQ'], s2: ['KeyE'], s3: ['KeyR'], magic: ['KeyT'], food: ['Digit1', 'Digit2', 'Digit3', 'Digit4'], dance: ['KeyZ'], kiss: ['KeyF'], say: ['Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9'], taunt: ['KeyC'] },
+    p1: { left: ['KeyA'], right: ['KeyD'], jump: ['KeyW', 'Space'], down: ['KeyS'], a1: ['KeyF'], a2: ['KeyG'], a3: ['KeyH'], s1: ['KeyQ'], s2: ['KeyE'], s3: ['KeyR'], magic: ['KeyT'], food: ['Digit1', 'Digit2', 'Digit3', 'Digit4'], dance: ['KeyZ'], kiss: ['KeyX'], say: ['KeyC'], taunt: ['KeyV'], x1: ['Digit5'], x2: ['Digit6'], x3: ['KeyY'] },
+    p2: { left: ['ArrowLeft'], right: ['ArrowRight'], jump: ['ArrowUp'], down: ['ArrowDown'], a1: ['KeyK'], a2: ['KeyL'], a3: ['Semicolon'], s1: ['KeyI'], s2: ['KeyO'], s3: ['KeyP'], magic: ['KeyU'], food: ['Digit7', 'Digit8', 'Digit9', 'Digit0'], dance: ['KeyN'], kiss: ['KeyM'], say: ['KeyJ'], taunt: ['KeyB'], x1: ['Comma'], x2: ['Period'], x3: ['Slash'] },
+    solo: { left: ['KeyA', 'ArrowLeft'], right: ['KeyD', 'ArrowRight'], jump: ['KeyW', 'ArrowUp', 'Space'], down: ['KeyS', 'ArrowDown'], a1: ['KeyJ'], a2: ['KeyK'], a3: ['KeyL'], s1: ['KeyQ'], s2: ['KeyE'], s3: ['KeyR'], magic: ['KeyT'], food: ['Digit1', 'Digit2', 'Digit3', 'Digit4'], dance: ['KeyZ'], kiss: ['KeyF'], say: ['Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9'], taunt: ['KeyC'], x1: ['KeyU'], x2: ['KeyI'], x3: ['KeyO'] },
   };
   const tr = (k, v) => (global.I18N ? global.I18N.t(k, v) : k);
   const trList = (k, i) => { const l = tr(k); return Array.isArray(l) ? l[i] || l[0] : ''; };
@@ -52,10 +53,10 @@
     return {
       char, x: 0, y: 0, w: PW, h: PH, vx: 0, vy: 0, face: char === 'boy' ? 1 : -1,
       grounded: false, groundCell: null, climbing: false, dropT: 0, coyote: 0, jumpBuf: 0, jumpCut: false, dashT: 0,
-      hp: HP_MAX, hurtT: 0, stunT: 0, trapT: 0, blindT: 0, invisT: 0, speedT: 0, confT: 0, bleedT: 0, coldAcc: 0,
+      hp: HP_MAX, hurtT: 0, stunT: 0, trapT: 0, matT: 0, shockT: 0, blindT: 0, invisT: 0, speedT: 0, confT: 0, bleedT: 0, coldAcc: 0,
       hide: -1, hideCd: 0, ambushT: 0,
       atkKind: null, atkT: 9, atkDur: 0, atkDef: null, atkHit: false, atkFired: false,
-      cd: { a1: 0, a2: 0, a3: 0, s1: 0, s2: 0, s3: 0, magic: 0 },
+      cd: { a1: 0, a2: 0, a3: 0, s1: 0, s2: 0, s3: 0, magic: 0, x1: 0, x2: 0, x3: 0 },
       inv: { iskender: 1, sandwich: 1, matcha: 0, orange: 1 },
       act: null, actT: 0, actDur: 0, actFx: 0, sipped: false, chewT: 0, healLeft: 0, healRate: 0,
       kissT: 0, kissReq: -99, morphT: 0, morphForm: null, bridalT: 0, castT: 0, shineT: 0, glowT: 0,
@@ -69,7 +70,7 @@
     canvas: null, ctx: null, cw: 0, ch: 0, dpr: 1, zoom: 2,
     state: 'menu', mode: 'local', myChar: 'boy', names: {}, schemes: {}, net: null,
     M: null, mapIdx: 0, bestOf: 3, round: 1, score: { boy: 0, girl: 0 }, phase: 'intro', phaseT: 0, roundT: 0, freeze: false,
-    power: true, powerT: 0, powerFlick: 0, traps: [], peels: [], projs: [], decoy: null, pings: [], fx: [], particles: [], ambient: [],
+    power: true, powerT: 0, powerFlick: 0, traps: [], peels: [], projs: [], decoy: null, cage: null, mat: null, pings: [], fx: [], particles: [], ambient: [],
     sniffT: 0, flash: null, truceUsed: false, foodTimer: 8, idc: 1, koWinner: null, slow: 1, shake: 0,
     players: null, keys: new Set(), jumpQ: { boy: false, girl: false }, downQ: { boy: false, girl: false },
     hooks: {}, ping: null, hudAcc: 0, netAcc: 0, paused: false, menuT: 0, t: 0, views: [], darks: [],
@@ -147,7 +148,7 @@
       if (km.taunt.includes(e.code)) sayPhrase(ch, NSWEET + (p.tauntIdx++ % NTAUNT), true);
       if (G.phase !== 'fight') continue;
       for (const s of ['a1', 'a2', 'a3']) if (km[s].includes(e.code)) startAttack(p, s);
-      for (const s of ['s1', 's2', 's3', 'magic']) if (km[s].includes(e.code)) useSkill(p, s);
+      for (const s of ['s1', 's2', 's3', 'magic', 'x1', 'x2', 'x3']) if (km[s] && km[s].includes(e.code)) useSkill(p, s);
       const fi = km.food.indexOf(e.code);
       if (fi >= 0) startAct(ch, FOODS[fi], true);
       if (km.dance.includes(e.code)) startAct(ch, 'dance', true);
@@ -159,7 +160,7 @@
     if (!code) return '';
     if (code.startsWith('Key')) return code.slice(3);
     if (code.startsWith('Digit')) return code.slice(5);
-    return { Semicolon: ';', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Space: '␣' }[code] || code;
+    return { Semicolon: ';', Comma: ',', Period: '.', Slash: '/', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Space: '␣' }[code] || code;
   }
 
   // =====================================================================
@@ -186,14 +187,14 @@
   function beginRound(n, foods, send) {
     const M = G.M;
     G.round = n; G.phase = 'intro'; G.phaseT = 0; G.roundT = 0; G.freeze = false; G.koWinner = null; G.slow = 1;
-    G.power = true; G.powerT = 0; G.powerFlick = 0.8; G.traps = []; G.peels = []; G.projs = []; G.decoy = null; G.pings = []; G.fx = []; G.particles = [];
+    G.power = true; G.powerT = 0; G.powerFlick = 0.8; G.traps = []; G.peels = []; G.projs = []; G.decoy = null; G.cage = null; G.mat = null; G.pings = []; G.fx = []; G.particles = [];
     G.sniffT = 0; G.flash = null; G.truceUsed = false; G.foodTimer = 10;
     M.foods.forEach((f, i) => { f.kind = foods[i] || null; f.t = 0; });
     for (const ch of ['boy', 'girl']) {
       const old = G.players[ch], p = makePlayer(ch), s = M.spawn[ch];
       p.local = old.local; p.say = old.say; p.typing = old.typing;
       p.x = s.x - PW / 2; p.y = s.y - PH; p.face = s.x < M.W * T / 2 ? 1 : -1;
-      p.cd.s1 = 4; p.cd.s2 = 2; p.cd.s3 = 4; p.cd.magic = 10;
+      p.cd.s1 = 4; p.cd.s2 = 2; p.cd.s3 = 4; p.cd.magic = 10; p.cd.x1 = 6; p.cd.x2 = 10; p.cd.x3 = 12;
       if (!p.local) { p.tx = p.x; p.ty = p.y; }
       G.players[ch] = p;
     }
@@ -246,6 +247,7 @@
     G.powerFlick = Math.max(0, G.powerFlick - sdt);
     if (G.flash) { G.flash.t -= sdt; if (G.flash.t <= 0) G.flash = null; }
     G.sniffT = Math.max(0, G.sniffT - sdt);
+    if (G.mat) { G.mat.t -= sdt; if (G.mat.t <= 0) { poof(G.mat.x, G.mat.y - 4, '#9ad27f'); G.mat = null; } }
     G.shake = Math.max(0, G.shake - dt);
     if (G.decoy) { G.decoy.t -= sdt; if (G.decoy.t <= 0) { poof(G.decoy.x + PW / 2, G.decoy.y + PH / 2, '#ff7aa8'); G.decoy = null; } }
     for (const ch of ['boy', 'girl']) {
@@ -264,7 +266,7 @@
 
   function timers(p, dt) {
     for (const k in p.cd) p.cd[k] = Math.max(0, p.cd[k] - dt);
-    p.hurtT = Math.max(0, p.hurtT - dt); p.stunT = Math.max(0, p.stunT - dt); p.trapT = Math.max(0, p.trapT - dt);
+    p.hurtT = Math.max(0, p.hurtT - dt); p.matT = Math.max(0, p.matT - dt); p.shockT = Math.max(0, p.shockT - dt); p.stunT = Math.max(0, p.stunT - dt); p.trapT = Math.max(0, p.trapT - dt);
     p.blindT = Math.max(0, p.blindT - dt); p.speedT = Math.max(0, p.speedT - dt); p.confT = Math.max(0, p.confT - dt);
     p.ambushT = Math.max(0, p.ambushT - dt); p.hideCd = Math.max(0, p.hideCd - dt); p.dropT = Math.max(0, p.dropT - dt);
     p.kissT = Math.max(0, p.kissT - dt); p.castT = Math.max(0, p.castT - dt); p.shineT = Math.max(0, p.shineT - dt); p.glowT = Math.max(0, p.glowT - dt);
@@ -317,7 +319,8 @@
       return;
     }
     if (inp.downQ) interact(p);
-    const stuck = p.trapT > 0, stunned = p.stunT > 0 || stuck;
+    const caged = !!G.cage && p.char === 'boy', onMat = p.matT > 0 && !!G.mat;
+    const stuck = p.trapT > 0 || onMat, stunned = p.stunT > 0 || stuck;
     let dir = stunned ? 0 : (inp.right ? 1 : 0) - (inp.left ? 1 : 0);
     if (p.blindT > 0 && dir && Math.random() < dt * 2) dir = -dir; // stumbling around, blinded
     if (dir && p.dashT <= 0 && !(p.atkKind && p.atkT < p.atkDur * 0.6)) p.face = dir;
@@ -325,7 +328,7 @@
     if (inp.jumpQ && !stunned) p.jumpBuf = P.BUF;
 
     // ladders
-    if (!stunned && !p.climbing && ((inp.jump && onLadder(p, -2)) || (inp.down && onLadder(p, 2)))) { p.climbing = true; p.jumpBuf = 0; }
+    if (!stunned && !caged && !p.climbing && ((inp.jump && onLadder(p, -2)) || (inp.down && onLadder(p, 2)))) { p.climbing = true; p.jumpBuf = 0; }
     if (p.climbing) {
       if (stunned) p.climbing = false;
       else if (p.jumpBuf > 0 && dir) { p.climbing = false; p.vy = -P.JUMP * 0.7; p.vx = dir * P.RUN; p.jumpBuf = 0; Sfx.play('jump'); }
@@ -378,8 +381,16 @@
       p.stepT -= dt;
       if (p.stepT <= 0) { p.stepT = 0.34; makeNoise(p, p.speedT > 0 ? 260 : 200, 'step'); }
     }
+    if (onMat) { p.x = G.mat.x - PW / 2; p.vx = 0; }
+    if (caged) confineToCage(p);
     checkHazards(p);
     checkPickups(p);
+  }
+  function confineToCage(p) {
+    const c = G.cage, half = CAGE_W / 2 - 2;
+    p.x = clamp(p.x, c.x - half, c.x + half - PW);
+    if (p.x <= c.x - half || p.x >= c.x + half - PW) p.vx = 0;
+    if (p.y < c.y - CAGE_H + 3) { p.y = c.y - CAGE_H + 3; if (p.vy < 0) p.vy = 0; }
   }
 
   function updateRemote(p, dt) {
@@ -405,7 +416,7 @@
   }
   function nearBreaker(p) { const b = G.M.breaker; return b && Math.abs(cx(p) - b.x) < 30 && Math.abs(cy(p) - b.y) < 34; }
   function interact(p) {
-    if (p.stunT > 0 || p.trapT > 0 || !p.grounded) {
+    if (p.stunT > 0 || p.trapT > 0 || p.matT > 0 || (G.cage && p.char === 'boy') || !p.grounded) {
       if (!p.grounded && !p.climbing) p.dropT = 0.2;
       return;
     }
@@ -519,7 +530,7 @@
   // =====================================================================
   //  Combat
   // =====================================================================
-  function canFight(p) { return G.phase === 'fight' && p.stunT <= 0 && p.trapT <= 0 && !p.climbing && p.hp > 0; }
+  function canFight(p) { return G.phase === 'fight' && p.stunT <= 0 && p.trapT <= 0 && p.matT <= 0 && !p.climbing && p.hp > 0; }
   function startAttack(p, slot, remote) {
     const def = ATK[p.char][slot]; if (!def) return false;
     if (!remote) {
@@ -596,6 +607,7 @@
     if (h.k === 'bite' || h.k === 'lunge') { G.fx.push({ type: 'teeth', x, y, t: 0, life: 0.45 }); Sfx.play('bite'); }
     else if (h.k === 'slap') { G.fx.push({ type: 'slap', x, y, t: 0, life: 0.4, face: Math.sign(h.kb) || 1 }); Sfx.play('slap'); }
     else if (h.k === 'slipper') { Sfx.play('thwack'); }
+    else if (h.k === 'zap') { Sfx.play('trap'); }
     textFx(x + (Math.random() - 0.5) * 10, v.y - 6, '-' + Math.round(h.d) + (h.am ? ' ' + tr('game.ambush') : ''), h.am ? '#ffd43b' : '#ff5d5d', h.am ? 18 : 15);
     for (let i = 0; i < 8; i++) spawnParticle(x, y, (Math.random() - 0.5) * 200, -60 - Math.random() * 120, 0.5, i % 2 ? '#ffffff' : '#ff6b6b', 2.5, i % 3 ? 'dot' : 'star', 500);
     G.shake = Math.max(G.shake, h.d > 12 ? 0.3 : 0.15);
@@ -614,6 +626,8 @@
 
   // ---------- skills ----------
   function useSkill(p, s, remote) {
+    // the cage opens with the same key that closed it
+    if (!remote && s === 'x2' && p.char === 'girl' && G.cage && G.phase === 'fight' && p.hp > 0) { releaseCage(true); p.cd.x2 = SKILL_CD.girl.x2; return true; }
     if (!remote && (!canFight(p) || p.cd[s] > 0)) { if (p.cd[s] > 0 && G.phase === 'fight') Sfx.play('nope'); return false; }
     const o = G.players[other(p.char)];
     let ok = false;
@@ -647,11 +661,77 @@
       } else if (s === 'magic') {
         if (dist(p, o) > 380) { p.emote = tr('game.tooFar'); p.emoteT = 1.2; Sfx.play('nope'); return false; }
         castMagic('girl', true); ok = true;
+      } else if (s === 'x1') {
+        if (dist(p, o) > 330) { p.emote = tr('game.tooFar'); p.emoteT = 1.2; Sfx.play('nope'); return false; }
+        doZap(true); ok = true;
+      } else if (s === 'x2') {
+        if (dist(p, o) > 380) { p.emote = tr('game.tooFar'); p.emoteT = 1.2; Sfx.play('nope'); return false; }
+        castCage(true); ok = true; p.cd.x2 = 0; return true;
+      } else if (s === 'x3') {
+        castMat(true); ok = true;
       }
     }
     if (ok && p.hide >= 0 && s !== 's1' && s !== 's3') leaveHide(p, false, 0);
     if (ok) p.cd[s] = SKILL_CD[p.char][s];
     return ok;
+  }
+  // ---------- medical shock, break cage, break mat (her extras) ----------
+  function groundY(x, y) { for (let ty = Math.floor(y / T); ty < G.M.H; ty++) { const c = cell(Math.floor(x / T), ty); if (c === '#' || c === '=') return ty * T; } return y; }
+  function doZap(send) {
+    const g = G.players.girl, b = G.players.boy;
+    g.castT = 0.6; g.emote = tr('act.zap'); g.emoteT = 2.6;
+    b.shockT = 1.3;
+    G.fx.push({ type: 'zap', x1: cx(g), y1: cy(g), x2: cx(b), y2: cy(b), t: 0, life: 0.9 });
+    Sfx.play('flash'); G.shake = Math.max(G.shake, 0.4);
+    for (let i = 0; i < 18; i++) spawnParticle(cx(b), cy(b), (Math.random() - 0.5) * 320, (Math.random() - 0.5) * 320, 0.5, i % 2 ? '#fff6b0' : '#7fdcff', 2.5, 'star', 0);
+    if (b.local) {
+      b.emote = tr('act.zapped'); b.emoteT = 2;
+      if (b.act) stopAct(b, true);
+      applyHit('boy', { d: 18, kb: 0, st: 1.3, k: 'zap' }, 'girl');
+    }
+    if (send) netSend({ t: 'zap' });
+  }
+  function castCage(send) {
+    const g = G.players.girl, b = G.players.boy;
+    if (G.cage) return;
+    const fy = groundY(cx(b), b.y + PH - 2);
+    G.cage = { x: cx(b), y: fy, t: 0 };
+    g.castT = 0.6; g.emote = tr('act.cage'); g.emoteT = 3;
+    poof(cx(b), fy - 20, '#c9ccd1'); Sfx.play('trapSet'); G.shake = Math.max(G.shake, 0.25);
+    textFx(cx(b), fy - CAGE_H - 12, tr('game.cage'), '#c9ccd1', 16);
+    if (b.local) { b.emote = tr('act.caged'); b.emoteT = 2.4; if (b.hide >= 0) leaveHide(b, false, 0); b.climbing = false; b.dashT = 0; b.matT = 0; }
+    if (send) netSend({ t: 'cage', x: Math.round(G.cage.x), y: Math.round(fy) });
+  }
+  function releaseCage(send) {
+    if (!G.cage) return;
+    poof(G.cage.x, G.cage.y - 20, '#9ad27f'); Sfx.play('pop');
+    textFx(G.cage.x, G.cage.y - CAGE_H - 12, tr('game.uncage'), '#9ad27f', 16);
+    G.cage = null;
+    if (send) netSend({ t: 'cageOpen' });
+  }
+  function castMat(send) {
+    const g = G.players.girl, b = G.players.boy;
+    // the mat goes down right beside her, on whatever floor she stands on
+    let mx = cx(g) + g.face * 34;
+    if (cell(Math.floor(mx / T), Math.floor((g.y + PH / 2) / T)) === '#') mx = cx(g) - g.face * 34;
+    if (cell(Math.floor(mx / T), Math.floor((g.y + PH / 2) / T)) === '#') mx = cx(g);
+    const my = g.grounded ? g.y + PH : groundY(mx, g.y + PH);
+    applyMat(mx, my);
+    g.castT = 0.6; g.emote = tr('act.mat'); g.emoteT = 3;
+    if (send) netSend({ t: 'mat', x: Math.round(mx), y: Math.round(my) });
+  }
+  function applyMat(mx, my) {
+    const b = G.players.boy;
+    poof(cx(b), cy(b), '#9ad27f');
+    G.mat = { x: mx, y: my, t: MAT_TIME };
+    if (b.local) {
+      if (b.hide >= 0) leaveHide(b, false, 0);
+      b.x = mx - PW / 2; b.y = my - PH; b.vx = b.vy = 0; b.climbing = false; b.dashT = 0; b.matT = MAT_TIME;
+      if (b.act) stopAct(b, true);
+      b.emote = tr('act.matted'); b.emoteT = 3;
+    } else { b.x = mx - PW / 2; b.y = my - PH; b.tx = b.x; b.ty = b.y; }
+    poof(mx, my - 6, '#9ad27f'); Sfx.play('trap'); G.shake = Math.max(G.shake, 0.2);
+    textFx(mx, my - 40, tr('game.mat'), '#9ad27f', 16);
   }
   function doFlash(send) {
     const g = G.players.girl, b = G.players.boy;
@@ -712,7 +792,7 @@
   }
 
   // ---------- fun actions & food ----------
-  function canAct(p) { return p.grounded && Math.abs(p.vx) < 60 && p.stunT <= 0 && p.trapT <= 0 && !p.climbing && G.phase === 'fight'; }
+  function canAct(p) { return p.grounded && Math.abs(p.vx) < 60 && p.stunT <= 0 && p.trapT <= 0 && p.matT <= 0 && !p.climbing && G.phase === 'fight'; }
   const ACT_DUR = { dance: 3.2, iskender: 4.4, sandwich: 3.2, matcha: 3.0, orange: 2.6 };
   const HEAL = { iskender: 34, sandwich: 20, orange: 10 };
   function startAct(ch, kind, send, force) {
@@ -822,7 +902,7 @@
     if (G.netAcc < 1 / 30) return;
     G.netAcc = 0;
     const p = G.players[G.myChar];
-    const fl = (p.stunT > 0 ? 1 : 0) | (p.trapT > 0 ? 2 : 0) | (p.blindT > 0 ? 4 : 0) | (p.climbing ? 16 : 0) | (p.bleedT > 0 ? 32 : 0) | (p.speedT > 0 ? 64 : 0) | (p.confT > 0 ? 128 : 0);
+    const fl = (p.stunT > 0 ? 1 : 0) | (p.trapT > 0 ? 2 : 0) | (p.blindT > 0 ? 4 : 0) | (p.climbing ? 16 : 0) | (p.bleedT > 0 ? 32 : 0) | (p.speedT > 0 ? 64 : 0) | (p.confT > 0 ? 128 : 0) | (p.matT > 0 ? 8 : 0);
     netSend({ t: 's', x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10, vx: Math.round(p.vx), vy: Math.round(p.vy), f: p.face, g: p.grounded ? 1 : 0, hd: p.hide, iv: p.invisT > 0 ? 1 : 0, hp: Math.round(p.hp * 10) / 10, a: p.act || 0, fl, rd: G.round, inv: p.inv });
   }
   function onNet(m) {
@@ -843,7 +923,7 @@
         const fl = m.fl | 0;
         o.climbing = !!(fl & 16);
         if (fl & 1) o.stunT = Math.max(o.stunT, 0.1); if (fl & 2) o.trapT = Math.max(o.trapT, 0.1); if (fl & 4) o.blindT = Math.max(o.blindT, 0.1);
-        o.bleedT = fl & 32 ? 0.1 : 0; o.speedT = fl & 64 ? 0.1 : 0; o.confT = fl & 128 ? 0.1 : 0;
+        o.matT = fl & 8 ? 0.1 : 0; o.bleedT = fl & 32 ? 0.1 : 0; o.speedT = fl & 64 ? 0.1 : 0; o.confT = fl & 128 ? 0.1 : 0;
         if (m.inv) o.inv = m.inv;
         break;
       }
@@ -867,6 +947,10 @@
       case 'power': setPower(!!m.on, +m.d || 8, false); break;
       case 'sniff': Sfx.play('sniff'); me.emote = tr('game.sniffed'); me.emoteT = 2; o.emote = '👃 ' + tr('act.sniff'); o.emoteT = 1.6; break;
       case 'flash': doFlash(false); break;
+      case 'zap': doZap(false); break;
+      case 'cage': G.cage = { x: m.x, y: m.y, t: 0 }; { const b = G.players.boy; if (b.local) { b.emote = tr('act.caged'); b.emoteT = 2.4; if (b.hide >= 0) leaveHide(b, false, 0); b.climbing = false; b.dashT = 0; } else { b.emote = null; } } poof(m.x, m.y - 20, '#c9ccd1'); Sfx.play('trapSet'); textFx(m.x, m.y - CAGE_H - 12, tr('game.cage'), '#c9ccd1', 16); break;
+      case 'cageOpen': releaseCage(false); break;
+      case 'mat': applyMat(m.x, m.y); break;
       case 'invis': Sfx.play('invis'); poof(cx(o), cy(o), '#c9b8ff'); break;
       case 'magic': castMagic(m.ch === 'girl' ? 'girl' : 'boy', false); break;
       case 'found': found(G.myChar, false); break;
@@ -1019,6 +1103,7 @@
     W.opVis = opVis;
     if (opVis > 0.01) { ctx.globalAlpha = opVis; C.draw(ctx, drawable(op), G.t); ctx.globalAlpha = 1; }
     if (me.hide < 0) { ctx.globalAlpha = me.invisT > 0 ? 0.4 + Math.sin(G.t * 8) * 0.08 : 1; C.draw(ctx, drawable(me), G.t); ctx.globalAlpha = 1; }
+    drawCage(ctx);
     drawFlashBeam(ctx);
     drawFx(ctx);
     drawParticles(ctx);
@@ -1036,7 +1121,8 @@
     const d = Object.assign({}, p);
     d.act = drawActKind(p);
     d.anchored = false;
-    if (p.trapT > 0) { d.vx = 0; }
+    if (p.trapT > 0 || p.matT > 0) { d.vx = 0; }
+    if (p.shockT > 0) { d.x += (Math.random() - 0.5) * 4; d.y += (Math.random() - 0.5) * 2; d.hurtT = Math.max(d.hurtT, 0.1); }
     return d;
   }
 
@@ -1171,8 +1257,39 @@
       const vis = clamp((lightAt(d.x + PW / 2, d.y + PH / 2, W.L) - 0.12) / 0.3, 0, 1);
       if (vis > 0.01) { ctx.globalAlpha = vis * (W.me.char === 'girl' ? 0.55 : 1); C.draw(ctx, fake, t); ctx.globalAlpha = 1; }
     }
+    if (G.mat) drawMat(ctx, G.mat);
     for (const pr of G.projs) C.drawSlipper(ctx, pr.x, pr.y, pr.rot);
   }
+  function drawMat(ctx, m) {
+    const a = Math.min(1, m.t * 2), pulse = 0.5 + Math.sin(G.t * 6) * 0.5;
+    ctx.save(); ctx.globalAlpha = a; ctx.translate(m.x, m.y);
+    ctx.fillStyle = 'rgba(154,210,127,' + (0.15 + pulse * 0.12) + ')'; ctx.beginPath(); ctx.ellipse(0, -1, 26, 6, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#2f5d46'; rr(ctx, -22, -5, 44, 6, 2); ctx.fill();
+    ctx.fillStyle = '#4f9a73'; rr(ctx, -20, -5, 40, 4, 2); ctx.fill();
+    ctx.fillStyle = '#e8f6d4'; ctx.font = '800 5px Barlow, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('MOLA', 0, -3);
+    // sticky strings
+    ctx.strokeStyle = 'rgba(190,255,150,0.6)'; ctx.lineWidth = 1;
+    for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * 9, -5); ctx.quadraticCurveTo(i * 9 + Math.sin(G.t * 4 + i) * 2, -10, i * 7, -14 - pulse * 2); ctx.stroke(); }
+    ctx.restore();
+  }
+  function drawCage(ctx) {
+    const c = G.cage; if (!c) return;
+    const x0 = c.x - CAGE_W / 2, top = c.y - CAGE_H, bot = c.y;
+    ctx.save();
+    ctx.fillStyle = 'rgba(180,190,200,0.07)'; ctx.fillRect(x0, top, CAGE_W, CAGE_H);
+    ctx.strokeStyle = '#aab3bd'; ctx.lineWidth = 1.6;
+    for (let i = 0; i <= 6; i++) { const x = x0 + i * CAGE_W / 6; ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bot); ctx.stroke(); }
+    ctx.lineWidth = 2.4; ctx.strokeStyle = '#7d8791';
+    ctx.beginPath(); ctx.moveTo(x0 - 2, top); ctx.lineTo(x0 + CAGE_W + 2, top); ctx.moveTo(x0 - 2, bot - 1); ctx.lineTo(x0 + CAGE_W + 2, bot - 1); ctx.stroke();
+    ctx.fillStyle = '#7d8791'; ctx.beginPath(); ctx.arc(c.x, top - 5, 4, Math.PI, 0); ctx.fill(); ctx.fillRect(c.x - 1, top - 6, 2, 6);
+    // sign + padlock
+    ctx.fillStyle = '#2b2f33'; rr(ctx, c.x - 17, top - 19, 34, 10, 2); ctx.fill();
+    ctx.fillStyle = '#ffd43b'; ctx.font = '800 7px Barlow, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('☕ MOLA', c.x, top - 14);
+    ctx.fillStyle = '#d9a441'; rr(ctx, c.x - 5, bot - 17, 10, 8, 1.5); ctx.fill();
+    ctx.strokeStyle = '#d9a441'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(c.x, bot - 17, 3.2, Math.PI, 0); ctx.stroke();
+    ctx.restore();
+  }
+
   function drawLamp(ctx, l, on) {
     const kind = G.M.theme.lamp, x = l.x, y = l.y;
     if (kind === 'bulb') {
@@ -1262,6 +1379,24 @@
           for (let i = 0; i <= 5; i++) ctx.lineTo(-11 + i * 4.4, s * (gap + (i % 2 ? -1 : 3)));
           ctx.lineTo(11, s * (gap + 6)); ctx.lineTo(-11, s * (gap + 6)); ctx.closePath(); ctx.fill(); ctx.stroke();
         }
+        ctx.restore();
+      } else if (f.type === 'zap') {
+        const a = 1 - k, flick = Math.random() < 0.7;
+        ctx.save(); ctx.globalAlpha = a; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        // the defibrillator paddles by her hands
+        const dx = f.x2 >= f.x1 ? 1 : -1, px = f.x1 + dx * 12, py = f.y1 - 4;
+        ctx.fillStyle = '#e8344e'; rr(ctx, f.x1 - 7 + dx * 4, f.y1 - 22, 14, 9, 2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.fillRect(f.x1 - 1 + dx * 4, f.y1 - 21, 2, 7); ctx.fillRect(f.x1 - 4 + dx * 4, f.y1 - 18, 8, 2);
+        ctx.fillStyle = '#3a3f45'; rr(ctx, px - 3, py - 3, 6, 6, 1.5); ctx.fill();
+        if (flick) for (const [w, col] of [[5, 'rgba(120,200,255,0.5)'], [2, '#ffffff']]) {
+          ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(px, py);
+          const n = 7;
+          for (let i = 1; i < n; i++) { const u = i / n; ctx.lineTo(px + (f.x2 - px) * u + (Math.random() - 0.5) * 16, py + (f.y2 - py) * u + (Math.random() - 0.5) * 16); }
+          ctx.lineTo(f.x2, f.y2); ctx.stroke();
+        }
+        // sparks around him
+        ctx.strokeStyle = '#fff6b0'; ctx.lineWidth = 1.6;
+        for (let i = 0; i < 4; i++) { const ang = Math.random() * 6.28, r1 = 6 + Math.random() * 6, r2 = 16 + Math.random() * 10; ctx.beginPath(); ctx.moveTo(f.x2 + Math.cos(ang) * r1, f.y2 + Math.sin(ang) * r1); ctx.lineTo(f.x2 + Math.cos(ang + 0.5) * r2, f.y2 + Math.sin(ang + 0.5) * r2); ctx.stroke(); }
         ctx.restore();
       } else if (f.type === 'slap') {
         ctx.save(); ctx.globalAlpha = 1 - k; ctx.translate(f.x, f.y);
@@ -1637,7 +1772,7 @@
         hp: p.hp, local: p.local, inv: p.inv, hide: p.hide >= 0,
         slots: SLOTS[ch].map(([s, icon]) => ({ s, icon, cd: p.cd[s], max: (ATK[ch][s] && ATK[ch][s].cd) || SKILL_CD[ch][s], key: sc ? keyLabel(sc[s][0]) : '' })),
         foodKeys: sc ? sc.food.map(keyLabel) : [],
-        status: { bleed: p.bleedT > 0, stun: p.stunT > 0 || p.trapT > 0, blind: p.blindT > 0, invis: p.invisT > 0, fast: p.speedT > 0, conf: p.confT > 0, morph: !!p.morphForm, bride: p.bridalT > 0, hidden: p.hide >= 0 },
+        status: { bleed: p.bleedT > 0, stun: p.stunT > 0 || p.trapT > 0, blind: p.blindT > 0, invis: p.invisT > 0, fast: p.speedT > 0, conf: p.confT > 0, morph: !!p.morphForm, bride: p.bridalT > 0, hidden: p.hide >= 0, caged: ch === 'boy' && !!G.cage, mat: p.matT > 0 },
       };
     }
     return { round: G.round, bestOf: G.bestOf, score: G.score, timeLeft: Math.max(0, ROUND_TIME - G.roundT), freeze: G.freeze, power: G.power, phase: G.phase, players: pl, ping: G.ping };

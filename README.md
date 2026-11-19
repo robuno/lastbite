@@ -8,7 +8,7 @@ Built with vanilla JavaScript, HTML5 Canvas and WebRTC. You can play online acro
 
 ## Highlights
 
-- **Asymmetric survivors.** *Him (the Biter):* Bite with bleeding, Lunge Bite, **Lights Out** (he gets night eyes), hidden **Bear Trap**, **Sniff** (sees her through anything), Wedding-gown curse. *Her (the Trickster):* Slap, Bite, **Slipper** throw, **Invisibility**, blinding **Flash**, **Decoy**, Tangerine → Potato curse.
+- **Asymmetric survivors.** *Him (the Biter):* Bite with bleeding, Lunge Bite, **Lights Out** (he gets night eyes), hidden **Bear Trap**, **Sniff** (sees her through anything), Wedding-gown curse. *Her (the Trickster):* Slap, Bite, **Slipper** throw, **Invisibility**, blinding **Flash**, **Decoy**, Tangerine → Potato curse, medical **Defibrillator shock**, **Break Cage** (locks him in until she lets him out) and **Break Mat** (teleports him beside her, stuck for 10 s).
 - **Stealth & light.** Lamps, a breaker anyone can flip, closets, bushes and freezers to hide in (attack out of one for an ×1.8 **ambush**), and noise rings from footsteps, chewing, dancing and talking.
 - **Survival.** Food pickups: İskender and sandwiches heal, strawberry matcha makes you faster, and an orange heals you and leaves a slippery peel for your rival. Dancing gives a damage buff. A kiss is a once-per-round truce, and only works if you both press it. After 100 s the freeze comes; in the Night Camp the campfire keeps you warm.
 - **3 arenas:** Abandoned House, Night Camp, Dead Market. Matches are best of 3 or best of 5.
