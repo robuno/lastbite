@@ -165,12 +165,17 @@ body.in-game .lang-float { display: none; }
 .seg.active { background: var(--rust); color: #fff; border-color: var(--rust); }
 .arena-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .arena-card { background: var(--panel); border: 1px solid var(--line); clip-path: var(--cut); display: flex; flex-direction: column; overflow: hidden; transition: transform .15s, border-color .2s; animation: fadeIn .4s ease both; }
-.arena-card:nth-child(2) { animation-delay: .06s; } .arena-card:nth-child(3) { animation-delay: .12s; }
+.arena-card:nth-child(2) { animation-delay: .06s; } .arena-card:nth-child(3) { animation-delay: .12s; } .arena-card:nth-child(4) { animation-delay: .18s; } .arena-card:nth-child(5) { animation-delay: .24s; } .arena-card:nth-child(6) { animation-delay: .3s; } .arena-card:nth-child(7) { animation-delay: .36s; }
 .arena-card:hover { transform: translateY(-3px); border-color: var(--line-strong); }
 .arena-card canvas { width: 100%; height: auto; aspect-ratio: 360 / 140; display: block; background: #050506; border-bottom: 1px solid var(--line); }
 .arena-card.theme-house canvas { background: linear-gradient(180deg, #0d0b0a, #1b140f); }
 .arena-card.theme-forest canvas { background: linear-gradient(180deg, #03070a, #0c1a18); }
 .arena-card.theme-market canvas { background: linear-gradient(180deg, #06090a, #111a1c); }
+.arena-card.theme-fair canvas { background: linear-gradient(180deg, #0a0612, #22102a); }
+.arena-card.theme-metro canvas { background: linear-gradient(180deg, #07090c, #151b20); }
+.arena-card.theme-library canvas { background: linear-gradient(180deg, #0c0808, #1e130e); }
+.arena-card.theme-ice canvas { background: linear-gradient(180deg, #02060d, #0e2236); }
+.arena-tags span.feat { color: #fff; border-color: var(--rust); background: rgba(180,60,40,.18); }
 .arena-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .arena-body h3 { margin: 0; font: 400 30px 'Bebas Neue', Impact, sans-serif; letter-spacing: .05em; display: flex; align-items: center; gap: 8px; }
 .arena-body p { margin: 0; color: #cbbda9; font-size: 14px; line-height: 1.4; flex: 1; }

@@ -62,6 +62,7 @@
     const kissing = (p.kissT || 0) > 0;
     if (kissing) ctx.rotate(p.face * 0.22 * Math.min(1, p.kissT * 3, (1.4 - p.kissT) * 6));
     if (hurt) ctx.translate(Math.sin(p.hurtT * 60) * 1.5, 0);
+    if ((p.downT || 0) > 0 && p.stunT > 0) { ctx.translate(p.face * 20, -7); ctx.rotate(-p.face * Math.PI / 2); }
     const sq = p.squash || 0;
     ctx.scale(p.face * (1 + sq * 0.6), 1 - sq * 0.6);
     if (biting) ctx.rotate(Math.sin(ak * Math.PI) * (atk === 'lunge' ? 0.42 : 0.3));

@@ -120,6 +120,15 @@
         case 'ko': this.tone(60, 1.4, 'sawtooth', 0.12, 0.4); this.noise(0.9, 0.25, 180); [523, 392, 262].forEach((f, i) => this.tone(f, 0.4, 'square', 0.06, 1, 0.2 + i * 0.18)); break;
         case 'freeze': this.noise(1.2, 0.08, 6000); this.tone(1800, 1, 'sine', 0.04, 0.5); break;
         case 'taunt': this.tone(140, 0.25, 'sawtooth', 0.05, 1.4); break;
+        case 'boing': this.tone(160, 0.35, 'sine', 0.2, 3.2); this.tone(320, 0.25, 'triangle', 0.06, 2.4, 0.02); break;
+        case 'trainBell': for (let i = 0; i < 6; i++) { this.tone(1245, 0.22, 'triangle', 0.06, 1, i * 0.28); this.tone(1480, 0.22, 'sine', 0.03, 1, i * 0.28 + 0.01); } break;
+        case 'trainHorn': this.tone(233, 1.1, 'sawtooth', 0.07, 0.97); this.tone(294, 1.1, 'sawtooth', 0.05, 0.97); this.noise(2.2, 0.12, 180); this.noise(2, 0.05, 900, 0.2); break;
+        case 'crash': this.noise(0.5, 0.35, 300); this.tone(80, 0.5, 'square', 0.12, 0.5); this.noise(0.3, 0.2, 2200, 0.05); break;
+        case 'secret': this.noise(0.4, 0.08, 260); this.tone(140, 0.5, 'triangle', 0.08, 0.7); [523, 622, 784].forEach((f, i) => this.tone(f, 0.25, 'sine', 0.04, 1, 0.25 + i * 0.07)); break;
+        case 'iceCrack': this.noise(0.08, 0.35, 4000); this.noise(0.25, 0.2, 1400, 0.04); this.tone(900, 0.2, 'square', 0.04, 0.3, 0.02); break;
+        case 'creak': this.tone(700 + Math.random() * 300, 0.12, 'triangle', 0.025, 0.6); this.noise(0.06, 0.06, 3200); break;
+        case 'splash': this.noise(0.45, 0.22, 700); this.noise(0.25, 0.12, 2200, 0.05); break;
+        case 'swim': this.noise(0.18, 0.08, 900); break;
         case 'sparkle': [1568, 2093, 2637].forEach((f, i) => this.tone(f, 0.2, 'triangle', 0.04, 0, i * 0.05)); break;
       }
     },

@@ -274,7 +274,7 @@
         <div class="arena-body">
           <h3><span class="ai">${def.icon}</span>${t('map.' + def.id)}</h3>
           <p>${t('mapd.' + def.id)}</p>
-          <div class="arena-tags"><span>${t('arena.hides', { n: M.hides.length })}</span><span>${t('arena.lamps', { n: M.lamps.length + M.fires.length })}</span><span>${t('arena.foods', { n: M.foods.length })}</span></div>
+          <div class="arena-tags"><span>${t('arena.hides', { n: M.hides.length })}</span><span>${t('arena.lamps', { n: M.lamps.length + M.fires.length })}</span><span>${t('arena.foods', { n: M.foods.length })}</span>${t('mapf.' + def.id) !== 'mapf.' + def.id ? `<span class="feat">${t('mapf.' + def.id)}</span>` : ''}</div>
           <button class="btn primary small">${t('arena.fight')}</button>
         </div>`;
       Game.drawThumb(card.querySelector('canvas'), i);
